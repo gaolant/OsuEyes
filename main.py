@@ -1,11 +1,25 @@
 import cv2
 import mediapipe as mp
 import pyautogui
+from eyeCalibration import *
+
+screen_w, screen_h = pyautogui.size()
+x = calibration()
+
+eyeWidth = x[2] - x[0]
+eyeHeight = x[3] - x[1]
+
+w_ratio = eyeWidth / 1980
+h_ratio = eyeHeight / 1080
+
+
 
 cam = cv2.VideoCapture(0)
 face_mesh = mp.solutions.face_mesh.FaceMesh(refine_landmarks = True)
-screen_w, screen_h = pyautogui.size()
-roi = False
+
+
+
+
 
 while True:
     _, frame = cam.read()
@@ -25,30 +39,14 @@ while True:
         centroid = (sum(x) / len(points), sum(y) / len(points))
         x = int(centroid[0]) 
         y = int(centroid[1]) 
-        print(x, y)
         cv2.circle(frame, (x, y), 6, (0, 255, 0))
-        if not roi:
-            roi = True
-            xCrop = int(x - width/2)
-            yCrop = int(y - height/2)
-        # print(xCrop, yCrop)
-        # Crop the frame
-        cropped_frame = frame[yCrop:yCrop+height, xCrop:xCrop+width]
-        resized = cv2.resize(cropped_frame, (640, 360))
 
-        cv2.imshow('Cropped Frame', resized)
-        if pyautogui.onScreen(x, y):
-            pyautogui.moveTo(x, y)
-        # for landmark in landmarks[0].landmark[474:478]:
-            # x 
-            # x = int(landmark.x * w )
-            # y = int(landmark.y * h)
-            # cv2.circle(frame, (x, y), 3, (0, 255, 0))
-            # screen_x = x * 5
-            # screen_y = y * 5
-            # print(x, y)
-            # print('break')
-            # pyautogui.moveTo(screen_x, screen_y)
+        calibratedX = int(x * w_ratio * 1280)
+        calibratedY = int(y * h_ratio * 720)
+        print(x,y)
+        print(calibratedX, calibratedY)
+        if pyautogui.onScreen(calibratedX, calibratedY):
+            pyautogui.moveTo(calibratedX, calibratedY)
 
     cv2.imshow('face', frame)
     
